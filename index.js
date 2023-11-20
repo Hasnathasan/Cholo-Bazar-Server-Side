@@ -15,7 +15,7 @@ app.use(express.json());
 // Routes
 // Define your routes here
 app.get('/', (req, res) => {
-    res.send("Summer Camp in running on Load Sheading hire")
+    res.send("Cholo Bazar is running on Load Sheading hire")
 })
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.lmw0s1b.mongodb.net/?retryWrites=true&w=majority`;
@@ -35,6 +35,10 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     // await client.connect();
 
+    const db = client.db('CholoBazar');
+    const productCollection = db.collection("products");
+    const cartCollection = db.collection("cart");
+    const booksCollection = db.collection("books");
 
 
     app.get('/products', async (req, res) => {
@@ -66,16 +70,6 @@ async function run() {
         res.send(result);
     });
   
-      app.post('/faLog', async(req, res) => {
-        const user = req.body;
-        const result = await fbUserCollection.insertOne(user);
-        res.send(result)
-      })
-  
-      app.get('/faLog', async(req, res) => {
-        const result = await fbUserCollection.find().toArray();
-        res.send(result)
-      })
   
       app.get('/cart', async(req, res) => {
         const result = await cartCollection.find().toArray();
@@ -110,6 +104,70 @@ async function run() {
       })
 
 
+
+      app.get('/books', async (req, res) => {
+        const result = await booksCollection.find().toArray();
+        res.send(result);
+    });
+    
+    app.get('/books/:id', async (req, res) => {
+        const id = req.params.id;
+        const query = { _id: new ObjectId(id) };
+        const result = await booksCollection.findOne(query);
+        res.send(result);
+    });
+
+    app.get('/booksByCategory/:category', async (req, res) => {
+        const category = req.params.category;
+        const query = { main_category: category };
+        const result = await booksCollection.find(query).toArray();
+        res.send(result);
+    });
+
+
+
+    app.get('/users', async (req, res) => {
+        const result = await usersCollection.find().toArray();
+        res.send(result);
+    });
+
+    app.get('/eachUser/:email', async (req, res) => {
+        const email = req.params.email;
+        const query = { email: email };
+        const result = await usersCollection.findOne(query);
+        res.send(result || { "notFound": true });
+    });
+
+    app.get('/each-user-by-number/:number', async (req, res) => {
+        const number = req.params.number;
+        const query = { phoneNumber: number };
+        const result = await usersCollection.findOne(query);
+        res.send(result || { "notFound": true });
+    });
+
+    app.post('/users', async (req, res) => {
+        const data = req.body;
+        const result = await usersCollection.insertOne(data);
+        res.send(result);
+    });
+
+    app.patch('/updateUser/:id', async (req, res) => {
+        const data = req.body;
+        const id = req.params.id;
+        const filter = { _id: new ObjectId(id) };
+        const updateDoc = {
+            $set: {
+                name: data.name,
+                email: data.email,
+                phoneNumber: data.phoneNumber,
+                date_of_birth: data.date_of_birth,
+                gender: data.gender,
+                photoUrl: data.photoUrl,
+            },
+        };
+        const result = await usersCollection.updateOne(filter, updateDoc);
+        res.send(result);
+    });
 
 
 
