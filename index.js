@@ -39,6 +39,7 @@ async function run() {
     const productCollection = db.collection("products");
     const cartCollection = db.collection("cart");
     const booksCollection = db.collection("books");
+    const usersCollection = db.collection("users");
 
 
     app.get('/products', async (req, res) => {
@@ -109,7 +110,7 @@ async function run() {
         const result = await booksCollection.find().toArray();
         res.send(result);
     });
-    
+
     app.get('/books/:id', async (req, res) => {
         const id = req.params.id;
         const query = { _id: new ObjectId(id) };
