@@ -48,6 +48,7 @@ async function run() {
     const cartCollection = db.collection("cart");
     const booksCollection = db.collection("books");
     const usersCollection = db.collection("users");
+    const ordersCollecton = db.collection("orders");
 
 
     app.get('/products', async (req, res) => {
@@ -214,12 +215,12 @@ async function run() {
         0
       );
       console.log(totalPrice);
-      const tranId = new ObjectId().toString()
+      const transactionId = new ObjectId().toString()
       const data = {
         total_amount: parseFloat(totalPrice),
         currency: 'BDT',
-        tran_id: tranId, // use unique tran_id for each api call
-        success_url: 'http://localhost:3030/success',
+        tran_id: transactionId, // use unique tran_id for each api call
+        success_url: `http://localhost:8000/orders/${transactionId}`,
         fail_url: 'http://localhost:3030/fail',
         cancel_url: 'http://localhost:3030/cancel',
         ipn_url: 'http://localhost:3030/ipn',
@@ -250,8 +251,25 @@ async function run() {
         // Redirect the user to payment gateway
         let GatewayPageURL = apiResponse.GatewayPageURL
         res.send({url: GatewayPageURL})
+        const finalOrder = {order, transactionId, paidStatus: false };
+        const result = ordersCollecton.insertOne(finalOrder);
         console.log('Redirecting to: ', GatewayPageURL)
     });
+    })
+
+    app.post('/orders/:trans_id', async(req, res) => {
+      const transactionId = req.params.trans_id;
+      console.log(transactionId);
+      const filter = { transactionId };
+      const updateDoc = {
+        $set: {
+          paidStatus: true
+        }
+      };
+      const result = await ordersCollecton.updateOne(filter, updateDoc);
+      if(result.modifiedCount > 0){
+        res.redirect(`http://localhost:5173/paymentSuccess/${transactionId}`)
+      }
     })
 
 
