@@ -1,6 +1,7 @@
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const express = require('express');
 const cors = require("cors");
+const SSLCommerzPayment = require('sslcommerz-lts')
 require('dotenv').config()
 const app = express();
 const port = process.env.PORT || 8000;
@@ -28,6 +29,13 @@ const client = new MongoClient(uri, {
     deprecationErrors: true,
   }
 });
+
+
+const store_id = process.env.SSLCOMMERZ_STORE_ID;
+const store_passwd = process.env.SSLCOMMERZ_STORE_PASS;
+const is_live = false //true for live, false for sandbox
+
+
 
 async function run() {
   try {
@@ -73,7 +81,19 @@ async function run() {
   
   
       app.get('/cart', async(req, res) => {
-        const result = await cartCollection.find().toArray();
+        const userEmail = req.query.userEmail;
+        const userNumber = req.query.userNumber;
+        let filter;
+        if(userEmail){
+          filter = {addedBy: userEmail}
+        }
+        else if(userNumber){
+          filter = {addedBy: userNumber}
+        }
+        else{
+          res.send({"wrongUser": true})
+        }
+        const result = await cartCollection.find(filter).toArray();
         res.send(result)
       })
   
@@ -169,6 +189,70 @@ async function run() {
         const result = await usersCollection.updateOne(filter, updateDoc);
         res.send(result);
     });
+
+
+    app.post('/order', async(req, res) => {
+      const order = req.body;
+      const userEmail = order?.customerEmail;
+      const phoneNumber = order?.phoneNumber;
+      if(userEmail){
+        filter = {addedBy: userEmail}
+      }
+      else if(phoneNumber){
+        filter = {addedBy: phoneNumber}
+      }
+      else{
+        res.send({"wrongUser": true})
+      }
+      const result = await cartCollection.find(filter).toArray();
+      const selectedCartProducts = result.filter(
+        (product) => product.isSelected == true
+      );
+      let totalPrice = selectedCartProducts?.reduce(
+        (total, product) =>
+          product.price.discounted_price * product.quantity + total,
+        0
+      );
+      console.log(totalPrice);
+      const tranId = new ObjectId().toString()
+      const data = {
+        total_amount: parseFloat(totalPrice),
+        currency: 'BDT',
+        tran_id: tranId, // use unique tran_id for each api call
+        success_url: 'http://localhost:3030/success',
+        fail_url: 'http://localhost:3030/fail',
+        cancel_url: 'http://localhost:3030/cancel',
+        ipn_url: 'http://localhost:3030/ipn',
+        shipping_method: 'Courier',
+        product_name: 'Computer.',
+        product_category: 'Electronic',
+        product_profile: 'general',
+        cus_name: 'Customer Name',
+        cus_email: 'customer@example.com',
+        cus_add1: 'Dhaka',
+        cus_add2: 'Dhaka',
+        cus_city: 'Dhaka',
+        cus_state: 'Dhaka',
+        cus_postcode: '1000',
+        cus_country: 'Bangladesh',
+        cus_phone: '01711111111',
+        cus_fax: '01711111111',
+        ship_name: 'Customer Name',
+        ship_add1: 'Dhaka',
+        ship_add2: 'Dhaka',
+        ship_city: 'Dhaka',
+        ship_state: 'Dhaka',
+        ship_postcode: 1000,
+        ship_country: 'Bangladesh',
+    };
+    const sslcz = new SSLCommerzPayment(store_id, store_passwd, is_live)
+    sslcz.init(data).then(apiResponse => {
+        // Redirect the user to payment gateway
+        let GatewayPageURL = apiResponse.GatewayPageURL
+        res.send({url: GatewayPageURL})
+        console.log('Redirecting to: ', GatewayPageURL)
+    });
+    })
 
 
 
