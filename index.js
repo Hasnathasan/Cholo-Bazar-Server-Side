@@ -220,7 +220,7 @@ async function run() {
         total_amount: parseFloat(totalPrice),
         currency: 'BDT',
         tran_id: transactionId, // use unique tran_id for each api call
-        success_url: `http://localhost:8000/orders/${transactionId}`,
+        success_url: `https://cholo-bazar.vercel.app/orders/${transactionId}`,
         fail_url: 'http://localhost:3030/fail',
         cancel_url: 'http://localhost:3030/cancel',
         ipn_url: 'http://localhost:3030/ipn',
