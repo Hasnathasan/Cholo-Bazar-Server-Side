@@ -274,6 +274,31 @@ async function run() {
 
 
 
+
+    app.patch("/changeUserRole", async(req, res) => {
+      const email = req.query.email;
+      const phoneNumber = req.query.phoneNumber;
+      const {userRole} = req.body;
+      console.log(userRole);
+      let filter;
+      if(email){
+        filter = {email}
+      }
+      else if(phoneNumber){
+        filter = {phoneNumber: `+${phoneNumber.split(" ")[1]}`}
+      };
+      console.log(filter);
+      const updateDoc = {
+        $set: {
+          userRole: userRole
+        }
+      };
+      const result = await usersCollection.updateOne(filter, updateDoc);
+      res.send(result)
+    })
+
+
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
