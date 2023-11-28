@@ -191,17 +191,34 @@ async function run() {
         res.send(result);
     });
 
-    app.get("/order", async(req, res) => {
-      const result = await ordersCollecton.find().toArray();
+    app.get("/order/:orderStatus", async(req, res) => {
+      const orderStatus = req. params.orderStatus;
+      const query = {orderStatus}
+      const result = await ordersCollecton.find(query).toArray();
       res.send(result)
     })
 
-    app.get('/order/:id', async (req, res) => {
+    app.get('/singleOrder/:id', async (req, res) => {
       const id = req.params.id;
+      console.log(id);
       const query = { _id: new ObjectId(id) };
       const result = await ordersCollecton.findOne(query);
       res.send(result);
   });
+
+
+  app.patch('/order/:id', async(req, res) => {
+    const id = req.params.id;
+    const status = req.query.status;
+    const filter = { _id: new ObjectId(id) };
+    const updateDoc = {
+      $set: {
+        orderStatus: status
+      }
+    }
+    const result = await ordersCollecton.updateOne(filter, updateDoc);
+    res.send(result)
+  })
 
 
     app.post('/order', async(req, res) => {
@@ -263,7 +280,7 @@ async function run() {
         // Redirect the user to payment gateway
         let GatewayPageURL = apiResponse.GatewayPageURL
         res.send({url: GatewayPageURL})
-        const finalOrder = {order, transactionId, paidStatus: false };
+        const finalOrder = {order, transactionId, paidStatus: false, orderStatus: "pending" };
         const result = ordersCollecton.insertOne(finalOrder);
         console.log('Redirecting to: ', GatewayPageURL)
     });
