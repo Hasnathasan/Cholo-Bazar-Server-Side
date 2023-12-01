@@ -55,6 +55,18 @@ async function run() {
         const result = await productCollection.find().toArray();
         res.send(result);
     });
+
+    app.post('/products', async(req, res) => {
+      const product = req.body;
+      const result = await productCollection.insertOne(product);
+      res.send(result)
+    })
+
+    app.get('/hot-deals', async(req, res) => {
+      const filter = {super_deal: true};
+      const result = await productCollection.find(filter).toArray();
+      res.send(result)
+    })
   
     app.get('/productsBySubCate', async (req, res) => {
       const subCate = req.query.subCategory;
