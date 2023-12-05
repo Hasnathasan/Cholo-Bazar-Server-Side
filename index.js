@@ -16,7 +16,7 @@ app.use(express.json());
 // Routes
 // Define your routes here
 app.get('/', (req, res) => {
-    res.send("Cholo Bazar is running on Load Sheading hire")
+  res.send("Cholo Bazar is running on Load Sheading hire")
 })
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.lmw0s1b.mongodb.net/?retryWrites=true&w=majority`;
@@ -52,22 +52,22 @@ async function run() {
 
 
     app.get('/products', async (req, res) => {
-        const result = await productCollection.find().toArray();
-        res.send(result);
+      const result = await productCollection.find().toArray();
+      res.send(result);
     });
 
-    app.post('/products', async(req, res) => {
+    app.post('/products', async (req, res) => {
       const product = req.body;
       const result = await productCollection.insertOne(product);
       res.send(result)
     })
 
-    app.get('/hot-deals', async(req, res) => {
-      const filter = {super_deal: true};
+    app.get('/hot-deals', async (req, res) => {
+      const filter = { super_deal: true };
       const result = await productCollection.find(filter).toArray();
       res.send(result)
     })
-  
+
     app.get('/productsBySubCate', async (req, res) => {
       const subCate = req.query.subCategory;
       const sortedText = req.query?.sort;
@@ -77,135 +77,135 @@ async function run() {
       if (sortedText === "priceLowToHigh") sort = { "price.discounted_price": 1 };
       if (sortedText === "ratingHighToLow") sort = { "rating": -1 };
       if (sortedText === "ratingLowToHigh") sort = { "rating": 1 };
-    
+
       console.log(sort);
       console.log(subCate);
-      const filter = { "secondary_category" : subCate};
+      const filter = { "secondary_category": subCate };
       const result = await productCollection.find(filter).sort(sort).toArray();
       res.send(result)
     })
-  
+
     app.get('/products/:id', async (req, res) => {
-        const id = req.params.id;
-        const query = { _id: new ObjectId(id) };
-        const result = await productCollection.findOne(query);
-        res.send(result);
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await productCollection.findOne(query);
+      res.send(result);
     });
-  
-  
-      app.get('/cart', async(req, res) => {
-        const userEmail = req.query.userEmail;
-        const userNumber = req.query.userNumber;
-        let filter;
-        if(userEmail){
-          filter = {addedBy: userEmail}
+
+
+    app.get('/cart', async (req, res) => {
+      const userEmail = req.query.userEmail;
+      const userNumber = req.query.userNumber;
+      let filter;
+      if (userEmail) {
+        filter = { addedBy: userEmail }
+      }
+      else if (userNumber) {
+        filter = { addedBy: userNumber }
+      }
+      else {
+        res.send({ "wrongUser": true })
+      }
+      const result = await cartCollection.find(filter).toArray();
+      res.send(result)
+    })
+
+    app.delete('/cart/:id', async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const result = await cartCollection.deleteOne(filter);
+      res.send(result)
+    })
+    app.patch('/updateCartProduct/:id', async (req, res) => {
+      const id = req.params.id;
+      const quantity = req.query.quantity;
+      const isSelected = req.query.isSelected;
+      const updateDoc = {
+        $set: {
+          quantity: parseInt(quantity),
+          isSelected: isSelected == "true" ? true : false,
         }
-        else if(userNumber){
-          filter = {addedBy: userNumber}
-        }
-        else{
-          res.send({"wrongUser": true})
-        }
-        const result = await cartCollection.find(filter).toArray();
-        res.send(result)
-      })
-  
-      app.delete('/cart/:id', async(req, res) => {
-        const id = req.params.id;
-        const filter = { _id: new ObjectId(id) };
-        const result = await cartCollection.deleteOne(filter);
-        res.send(result)
-      })
-      app.patch('/updateCartProduct/:id', async(req, res) => {
-        const id = req.params.id;
-        const quantity = req.query.quantity;
-        const isSelected = req.query.isSelected;
-        const updateDoc = {
-          $set:{
-            quantity: parseInt(quantity),
-            isSelected: isSelected == "true" ? true : false,
-          }
-        };
-        const filter = { _id: new ObjectId(id) };
-        const result = await cartCollection.updateOne(filter, updateDoc);
-        res.send(result)
-      })
-  
-      app.post('/cart', async(req, res) => {
-        const product = req.body;
-        const result = await cartCollection.insertOne(product);
-        res.send(result)
-      })
+      };
+      const filter = { _id: new ObjectId(id) };
+      const result = await cartCollection.updateOne(filter, updateDoc);
+      res.send(result)
+    })
+
+    app.post('/cart', async (req, res) => {
+      const product = req.body;
+      const result = await cartCollection.insertOne(product);
+      res.send(result)
+    })
 
 
 
-      app.get('/books', async (req, res) => {
-        const result = await booksCollection.find().toArray();
-        res.send(result);
+    app.get('/books', async (req, res) => {
+      const result = await booksCollection.find().toArray();
+      res.send(result);
     });
 
     app.get('/books/:id', async (req, res) => {
-        const id = req.params.id;
-        const query = { _id: new ObjectId(id) };
-        const result = await booksCollection.findOne(query);
-        res.send(result);
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await booksCollection.findOne(query);
+      res.send(result);
     });
 
     app.get('/booksByCategory/:category', async (req, res) => {
-        const category = req.params.category;
-        const query = { main_category: category };
-        const result = await booksCollection.find(query).toArray();
-        res.send(result);
+      const category = req.params.category;
+      const query = { main_category: category };
+      const result = await booksCollection.find(query).toArray();
+      res.send(result);
     });
 
 
 
     app.get('/users', async (req, res) => {
-        const result = await usersCollection.find().toArray();
-        res.send(result);
+      const result = await usersCollection.find().toArray();
+      res.send(result);
     });
 
     app.get('/eachUser/:email', async (req, res) => {
-        const email = req.params.email;
-        const query = { email: email };
-        const result = await usersCollection.findOne(query);
-        res.send(result || { "notFound": true });
+      const email = req.params.email;
+      const query = { email: email };
+      const result = await usersCollection.findOne(query);
+      res.send(result || { "notFound": true });
     });
 
     app.get('/each-user-by-number/:number', async (req, res) => {
-        const number = req.params.number;
-        const query = { phoneNumber: number };
-        const result = await usersCollection.findOne(query);
-        res.send(result || { "notFound": true });
+      const number = req.params.number;
+      const query = { phoneNumber: number };
+      const result = await usersCollection.findOne(query);
+      res.send(result || { "notFound": true });
     });
 
     app.post('/users', async (req, res) => {
-        const data = req.body;
-        const result = await usersCollection.insertOne(data);
-        res.send(result);
+      const data = req.body;
+      const result = await usersCollection.insertOne(data);
+      res.send(result);
     });
 
     app.patch('/updateUser/:id', async (req, res) => {
-        const data = req.body;
-        const id = req.params.id;
-        const filter = { _id: new ObjectId(id) };
-        const updateDoc = {
-            $set: {
-                name: data.name,
-                email: data.email,
-                phoneNumber: data.phoneNumber,
-                date_of_birth: data.date_of_birth,
-                gender: data.gender,
-                photoUrl: data.photoUrl,
-            },
-        };
-        const result = await usersCollection.updateOne(filter, updateDoc);
-        res.send(result);
+      const data = req.body;
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          name: data.name,
+          email: data.email,
+          phoneNumber: data.phoneNumber,
+          date_of_birth: data.date_of_birth,
+          gender: data.gender,
+          photoUrl: data.photoUrl,
+        },
+      };
+      const result = await usersCollection.updateOne(filter, updateDoc);
+      res.send(result);
     });
 
-    app.get("/order/:orderStatus", async(req, res) => {
-      const orderStatus = req. params.orderStatus;
-      const query = {orderStatus}
+    app.get("/order/:orderStatus", async (req, res) => {
+      const orderStatus = req.params.orderStatus;
+      const query = { orderStatus }
       const result = await ordersCollecton.find(query).toArray();
       res.send(result)
     })
@@ -216,7 +216,7 @@ async function run() {
       const query = { _id: new ObjectId(id) };
       const result = await ordersCollecton.findOne(query);
       res.send(result);
-  });
+    });
 
     app.get('/ordersByEmail/:email', async (req, res) => {
       const email = req.params.email;
@@ -224,35 +224,35 @@ async function run() {
       const query = { "order.customerEmail": email };
       const result = await ordersCollecton.find(query).toArray();
       res.send(result);
-  });
+    });
 
 
-  app.patch('/order/:id', async(req, res) => {
-    const id = req.params.id;
-    const status = req.query.status;
-    const filter = { _id: new ObjectId(id) };
-    const updateDoc = {
-      $set: {
-        orderStatus: status
+    app.patch('/order/:id', async (req, res) => {
+      const id = req.params.id;
+      const status = req.query.status;
+      const filter = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          orderStatus: status
+        }
       }
-    }
-    const result = await ordersCollecton.updateOne(filter, updateDoc);
-    res.send(result)
-  })
+      const result = await ordersCollecton.updateOne(filter, updateDoc);
+      res.send(result)
+    })
 
 
-    app.post('/order', async(req, res) => {
+    app.post('/order', async (req, res) => {
       const order = req.body;
       const userEmail = order?.customerEmail;
       const phoneNumber = order?.phoneNumber;
-      if(userEmail){
-        filter = {addedBy: userEmail}
+      if (userEmail) {
+        filter = { addedBy: userEmail }
       }
-      else if(phoneNumber){
-        filter = {addedBy: phoneNumber}
+      else if (phoneNumber) {
+        filter = { addedBy: phoneNumber }
       }
-      else{
-        res.send({"wrongUser": true})
+      else {
+        res.send({ "wrongUser": true })
       }
       const result = await cartCollection.find(filter).toArray();
       const selectedCartProducts = result.filter(
@@ -270,7 +270,7 @@ async function run() {
         currency: 'BDT',
         tran_id: transactionId, // use unique tran_id for each api call
         success_url: `https://cholo-bazar.vercel.app/orders/${transactionId}`,
-        fail_url: 'http://localhost:3030/fail',
+        fail_url: `https://cholo-bazar.vercel.app/deleteOrder/${transactionId}`,
         cancel_url: 'http://localhost:3030/cancel',
         ipn_url: 'http://localhost:3030/ipn',
         shipping_method: 'Courier',
@@ -294,19 +294,29 @@ async function run() {
         ship_state: 'Dhaka',
         ship_postcode: 1000,
         ship_country: 'Bangladesh',
-    };
-    const sslcz = new SSLCommerzPayment(store_id, store_passwd, is_live)
-    sslcz.init(data).then(apiResponse => {
+      };
+      const sslcz = new SSLCommerzPayment(store_id, store_passwd, is_live)
+      sslcz.init(data).then(apiResponse => {
         // Redirect the user to payment gateway
         let GatewayPageURL = apiResponse.GatewayPageURL
-        res.send({url: GatewayPageURL})
-        const finalOrder = {order, transactionId, paidStatus: false, orderStatus: "pending" };
+        res.send({ url: GatewayPageURL })
+        const finalOrder = { order, transactionId, paidStatus: false, orderStatus: "pending" };
         const result = ordersCollecton.insertOne(finalOrder);
         console.log('Redirecting to: ', GatewayPageURL)
-    });
+      });
     })
 
-    app.post('/orders/:trans_id', async(req, res) => {
+
+    app.delete('/deleteOrder/:trans_id', async (req, res) => {
+      const transactionId = req.params.trans_id;
+      const filter = { transactionId };
+      const result = await ordersCollecton.deleteOne(filter);
+      if (result.modifiedCount > 0) {
+        res.redirect(`https://cholo-bazar-e-commerce.web.app/paymentSuccess/${transactionId}`)
+      }
+    })
+
+    app.post('/orders/:trans_id', async (req, res) => {
       const transactionId = req.params.trans_id;
       console.log(transactionId);
       const filter = { transactionId };
@@ -316,25 +326,25 @@ async function run() {
         }
       };
       const result = await ordersCollecton.updateOne(filter, updateDoc);
-      if(result.modifiedCount > 0){
-        res.redirect(`http://localhost:5173/paymentSuccess/${transactionId}`)
+      if (result.modifiedCount > 0) {
+        res.redirect(`https://cholo-bazar-e-commerce.web.app/paymentSuccess/${transactionId}`)
       }
     })
 
 
 
 
-    app.patch("/changeUserRole", async(req, res) => {
+    app.patch("/changeUserRole", async (req, res) => {
       const email = req.query.email;
       const phoneNumber = req.query.phoneNumber;
-      const {userRole} = req.body;
+      const { userRole } = req.body;
       console.log(userRole);
       let filter;
-      if(email){
-        filter = {email}
+      if (email) {
+        filter = { email }
       }
-      else if(phoneNumber){
-        filter = {phoneNumber: `+${phoneNumber.split(" ")[1]}`}
+      else if (phoneNumber) {
+        filter = { phoneNumber: `+${phoneNumber.split(" ")[1]}` }
       };
       console.log(filter);
       const updateDoc = {
@@ -360,7 +370,7 @@ run().catch(console.dir);
 
 
 // Start the server
- // Specify the desired port number
+// Specify the desired port number
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
