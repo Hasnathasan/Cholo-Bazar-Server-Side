@@ -85,6 +85,23 @@ async function run() {
       res.send(result)
     })
 
+    app.get('/search', async (req, res) => {
+      const productName = req.query.name;
+      const sortedText = req.query?.sort;
+      console.log(sortedText);
+      let sort = null;
+      if (sortedText === "priceHighToLow") sort = { "price.discounted_price": -1 };
+      if (sortedText === "priceLowToHigh") sort = { "price.discounted_price": 1 };
+      if (sortedText === "ratingHighToLow") sort = { "rating": -1 };
+      if (sortedText === "ratingLowToHigh") sort = { "rating": 1 };
+
+      console.log(sort);
+      console.log(subCate);
+      const filter = { "secondary_category": subCate };
+      const result = await productCollection.find(filter).sort(sort).toArray();
+      res.send(result)
+    })
+
     app.get('/products/:id', async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
