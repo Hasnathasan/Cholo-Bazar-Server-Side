@@ -86,7 +86,8 @@ async function run() {
     })
 
     app.get('/search', async (req, res) => {
-      const words = req.body.name.split(' ')
+      console.log(req.query.name);
+      const words = req.query.name?.split(' ')
       const sortedText = req.query?.sort;
       console.log(sortedText);
       let sort = null;
@@ -96,11 +97,24 @@ async function run() {
       if (sortedText === "ratingLowToHigh") sort = { "rating": 1 };
 
       console.log(sort);
-      console.log(subCate);
       const filter = {
         'specification.Title': { $regex: new RegExp(words.join('|'), 'i') }
     };
-      const result = await collection.find(filter).toArray();
+      const filterOnSecondaryCategory = {
+        'secondary_category': { $regex: new RegExp(words.join('|'), 'i') }
+    };
+      const filterOnMainCategory = {
+        'main_category': { $regex: new RegExp(words.join('|'), 'i') }
+    };
+      const result = await productCollection.find(filter).toArray();
+      if(result.length === 0){
+        const result2 = await productCollection.find(filterOnSecondaryCategory).toArray();
+        if (result2.length === 0){
+          const result3 = await productCollection.find(filterOnMainCategory).toArray();
+          return res.send(result3)
+        }
+        return res.send(result2)
+      }
       res.send(result)
     })
 
