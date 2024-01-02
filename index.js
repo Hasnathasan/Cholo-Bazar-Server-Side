@@ -86,7 +86,7 @@ async function run() {
     })
 
     app.get('/search', async (req, res) => {
-      const productName = req.query.name;
+      const words = req.body.name.split(' ')
       const sortedText = req.query?.sort;
       console.log(sortedText);
       let sort = null;
@@ -97,8 +97,10 @@ async function run() {
 
       console.log(sort);
       console.log(subCate);
-      const filter = { "secondary_category": subCate };
-      const result = await productCollection.find(filter).sort(sort).toArray();
+      const filter = {
+        'specification.Title': { $regex: new RegExp(words.join('|'), 'i') }
+    };
+      const result = await collection.find(filter).toArray();
       res.send(result)
     })
 
