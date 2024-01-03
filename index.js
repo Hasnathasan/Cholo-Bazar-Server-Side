@@ -99,17 +99,17 @@ async function run() {
       console.log(sort);
       const filter = {
         'specification.Title': { $regex: new RegExp(words.join('|'), 'i') }
-    };
+      };
       const filterOnSecondaryCategory = {
         'secondary_category': { $regex: new RegExp(words.join('|'), 'i') }
-    };
+      };
       const filterOnMainCategory = {
         'main_category': { $regex: new RegExp(words.join('|'), 'i') }
-    };
+      };
       const result = await productCollection.find(filter).toArray();
-      if(result.length === 0){
+      if (result.length === 0) {
         const result2 = await productCollection.find(filterOnSecondaryCategory).toArray();
-        if (result2.length === 0){
+        if (result2.length === 0) {
           const result3 = await productCollection.find(filterOnMainCategory).toArray();
           return res.send(result3)
         }
