@@ -106,11 +106,11 @@ async function run() {
       const filterOnMainCategory = {
         'main_category': { $regex: new RegExp(words.join('|'), 'i') }
       };
-      const result = await productCollection.find(filter).toArray();
+      const result = await productCollection.find(filter).sort(sort).toArray();
       if (result.length === 0) {
-        const result2 = await productCollection.find(filterOnSecondaryCategory).toArray();
+        const result2 = await productCollection.find(filterOnSecondaryCategory).sort(sort).toArray();
         if (result2.length === 0) {
-          const result3 = await productCollection.find(filterOnMainCategory).toArray();
+          const result3 = await productCollection.find(filterOnMainCategory).sort(sort).toArray();
           return res.send(result3)
         }
         return res.send(result2)
